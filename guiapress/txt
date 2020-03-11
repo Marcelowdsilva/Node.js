@@ -1,0 +1,219 @@
+npm init                            para iniciar o projeto
+npm install --save express          instalando o express
+npm install --save sequelize        instalando o sequelize
+npm install --save mysql2           dependencia do sequelize tem para se conectar com mysql2
+npm install --save body-parser      biblioteca do express para trabalhar com formulario
+npm install --save ejs              renderizar html
+
+2º criar o index.js 
+3º const express = require ('express')                                              importando express
+4º const app = express                                                              estanciando express
+5º criamos a primeira rota                                                          app.get("/", req,res()=>{ res.send("bem vindo ao site")})
+6º Precisamos subir o servidor                                                      app.listen(8080,()=>{ console.log("servidor rodando")})
+7º Importar a view engine no nosso index                                            app.set("view engine","ejs")
+8º precisamos criar uma pasta chamada views  onde vai ficar nosso html com ejs
+9º Dentro da pasta views criar nosso primeiro arquivo ejs "index.ejs"
+10º na nossa rota principal vai renderizar nossa views res.render("index")
+11º Importar o body-parse                                                           const bodyParser = require("body-parser")
+12º                                                                                 app.use(bodyParser.urlencoded({extende:false}))
+13º                                                                                 app.use(bodyParser.json())
+14º presisamos avisar o express para usar arquivos staticos                         app.use(express.static("public"))
+15º dentro da nossa pasta criamos a pasta public
+16º Abrir o banco de dados e criar o banco
+17º Criar uma pasta database no nosso projeto
+18º Dentro desta pasta criar um scrip, nosso caso é database.js
+19º Dentro do script importamos o sequelize                                         const Sequelize = require("sequelize")
+20º Criamos uma conexão                                                             const connection = new Sequelize('guiapress','root','4601191Lucy',{ 
+                                                                                    host: 'localhost', dialect: 'mysql'
+                                                                                    })
+21º precisamos exportar                                                             module.exports = connection;
+22º no arquivo principal precimas importar ele                                      const connection = require("./database/database")
+23º efetuar a conexão                                                               connection.authenticate()
+                                                                                            .then(()=>{
+                                                                                                console.log("conexão com o banco de dados realizada")
+                                                                                            }).catch((erro)=>{
+                                                                                                console.log(erro)
+                                                                                            })
+                                                                                            
+24º importando o boodstrap, na pasta public vamos colar as duas pasta do boodstrap
+25º Na pasta views vamos criar uma pasta partials
+26º Criamos um header.ejs, nele começamos com uma estrutura html basica onde vamos colocar o link css
+27º     <link rel="stylesheet" href="/css/bootstrap.min.css">
+28º Criamos o footer fechamos a tag html,e vamos importar os scripts do bootstrap
+
+29º <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="/js/boodstrap.min.js"></script>
+</html>
+
+30º agora vamos incluir o header e o footer na nossa pagina index.js
+<%- include partials/header.ejs %>
+<body>
+</body>
+<%- include partials/footer.ejs %>
+
+31º Organizando o projeto
+ vamos criar duas pasta uma pra categoria e outra para artigos e dentro dessas pastas vamos colocar nossos controllers usando o Router
+ ArticlesController.js
+ CategoriesController.js
+
+ 32º dentro dos controllers vamos importar o expresse e o Router
+ const express = require("express")
+ const router = express.Router()
+
+ 33º Primeira rota com o router
+ router.get("/articles",(req,res)=>{
+     res.send("Rota de artigos")
+ })
+
+ 34º no nosso index precisamos importar o modulo router
+ const categoriesController = require("./categories/CategoriesController")
+ const articlesController = require("./articles/articlesController")
+ app.use("/",categoriesController);
+ app.use("/",articlesController);
+
+ 35º Precisaos criar nossos model "tabela e os campos de dentro dela"
+ na pasta categories criaremos um arquivo category.js
+
+ 36º importamos o Sequelize const Sequelize = require("sequelize")
+37º Importamos a nossa conexão com o banco const connection = require("../database/database")
+
+38º Criando o nosso model 
+
+connst Category = connection.define("categories",{
+    title:{
+        type: Sequelize.STRING,
+        allownull: false
+    },slug: {
+        type: Sequelize.STRING,
+        allownull.false
+    }
+})
+
+module.exports = Category;
+
+39º Precisamos criar no nosso model de articles
+const Sequelize = require("sequelize");
+const connection = require("../database/database");
+
+const Article = connection.define('articles',{
+    title:{
+        type: Sequelize.STRING,
+        allownull: false
+    },slug:{
+        type: Sequelize.STRING,
+        allownull
+    },body:{
+        type: Sequelize.TEXT,
+        allownull: false
+    }
+})
+
+module.exports = Article;
+
+40º Vamos fazer o relacionamento entre tabelas, nessa aplicação vamos fazer um relacionamento de mão dupla, 
+de 1 para 1 um articles para uma category,
+e de 1 para muitos uma category para diversos artigos
+
+41º No nosso model de articles vamos importar a nossa categoria
+const Category = require("../categories/categories");
+
+42º Logo a baixo do model colocaremos:
+Article.belongsTo(Category)// belongsTo significa pertence a uma categoria
+Category.hasMany(Article) // hasMany significa que tem muitos, Uma category tem muitos articles
+
+43º Precisamos atualizar o banco de dados com o seguinte codigo
+No model Article = Article.sync({force: true})
+No model Category = Category.sync({force: true})
+
+44º  No nosso arquivo principal precisamos importar os nossos models
+conts Article = require("./articles/Article")
+const Category = require("./categories/Category")
+
+45º Apos a criação das tabelas no mysql é necessario remover as linhas
+Article.sync({force: true})
+ Category.sync({force: true})
+Se deixar cada vez que nossa aplicação rodar sera forcada a criação da tabela então é necessario
+remover apos a criação da tabela
+
+46º Vamos criar nosso formulario, vamos definir a rota la na pasta categoriesController
+    router.get("\admin/categories/new",req,res()=>{
+
+    })
+ na pasta view criaremos uma pasta admin e dentro da pasta admin criaremos uma pasta categories
+ criaremos um arquivo new.ejs apos isso voltaremos para a pasta onde está nossa rota e vamos ligar com o arquivo
+
+router.get("\amdmin/categories/new",req,res()=>{
+    res.render("admin/categories/new")
+    })
+
+47º  Agora vamos criar nosso layout do formulario lembrando que a party views não esta no mesmo
+nivel da pasta admin entao teremos que usar ../../partials para o programa encontrar as partials
+<%- include('../../partials/header.ejs') %>
+<%- include('../../partials/footer.ejs') %>
+
+48º vamos criar uma navbar e incluir na pasta partial para compartilhar com todas as views
+
+49º Vamos criar o formulario e cadastrar no nosso banco de dados, lembrando que ja configuramos o nosso body-parser
+vamos então criar uma rota para salvar esse formulario
+
+const slugify = require("slugify") // precisamos importar ela para podermos utilizar *****
+
+router.post("/categories/save",(req,res)=>{
+    let title = req.body.title // pegando o titulo numa variavel // usando o bodyParser
+    if(title!= undefined){
+        Category.create({
+            title: title,
+            slug: slugify // para conseguirmos transformar uma strig no formato de url vamos baixar a biblioteca slugify
+            npm install --save slugify  *****
+        })
+    }else{
+        res.redirect("admin/categories/new")  // caso o usuario escreva um titulo vazio
+        ele vai ser direcionado para rota admin
+    }
+})
+
+50º Criaremos uma tabela para mostrar nossas categorias, começamos com a rota no CategoriesController
+router.get("/admin/categories",(req,res)=>{
+    res.render("admin/categories/index")
+})
+
+essa rota vai renderizar uma views que vamos criar la na nossa pasta admim/categories que vai se chamar index.ejs
+
+51º Criaremos uma tabela, codigo está na admin/categories/index.ejs
+
+52º Agora precisamos mostrar as informações do banco de dados para o front end 
+    router.get("/admin/categories",(req,res)=>{
+    Category.findAll().then(categories =>{
+        res.render("admin/categories/index",{categories : categories})
+    })
+})
+        no front-end
+
+
+        <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Titulo</th>
+                <th>Slug</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% categories.forEach(category =>{ %>
+                <tr>
+                    <th><%= category.id %> </th>
+                    <th><%= category.title %> </th>
+                    <th><%= category.slug %> </th>
+                    <th></th>
+                </tr>
+            <%}) %> 
+        </tbody>
+    </table>
+
+
+
+53º
+54º
+55º
